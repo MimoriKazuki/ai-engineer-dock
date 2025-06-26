@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -e
+
+echo "Starting AI Engineer Dock Runner..."
+
+# Environment variables with defaults
+RUNNER_PORT=${RUNNER_PORT:-3002}
+WORKSPACE_DIR=${WORKSPACE_DIR:-/workspace}
+REDIS_URL=${REDIS_URL:-redis://redis:6379}
+
+# Create workspace if it doesn't exist
+mkdir -p "$WORKSPACE_DIR"
+cd "$WORKSPACE_DIR"
+
+# Start file watcher in background
+echo "Starting file watcher..."
+chokidar "**/*" --ignore "**/node_modules/**" --ignore "**/.git/**" --ignore "**/dist/**" --ignore "**/.next/**" \
+  | while read line; do
+    if [[ "$line" =~ ^(add|change|unlink) ]]; then
+      event_type=$(echo "$line" | cut -d' ' -f1)
+      file_path=$(echo "$line" | cut -d' ' -f2-)
+      timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+      
+      # Send file system event to API
+      curl -s -X POST "http://api:3001/ws/fs-event/default" \
+        -H "Content-Type: application/json" \
+        -d "{\"type\":\"$event_type\",\"path\":\"$file_path\",\"timestamp\":\"$timestamp\"}" \
+        > /dev/null 2>&1 || true
+    fi
+  done &
+
+# Start simple HTTP server for health checks
+cat > /tmp/health-server.js << 'EOF'
+const http = require('http');
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
+  } else {
+    res.writeHead(404);
+    res.end('Not Found');
+  }
+});
+server.listen(process.env.RUNNER_PORT || 3002, '0.0.0.0', () => {
+  console.log(`Health server listening on port ${process.env.RUNNER_PORT || 3002}`);
+});
+EOF
+
+node /tmp/health-server.js &
+
+echo "Runner daemon started successfully"
+
+# Keep the container running
+tail -f /dev/null

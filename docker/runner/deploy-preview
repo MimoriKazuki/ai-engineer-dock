@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -e
+
+PROJECT_DIR="$1"
+PREVIEW_NAME="$2"
+
+if [ -z "$PROJECT_DIR" ]; then
+  echo "Usage: deploy-preview <project-dir> [preview-name]"
+  exit 1
+fi
+
+cd "$PROJECT_DIR"
+
+# Build the project
+echo "Building project..."
+npm run build
+
+if [ -n "$VERCEL_TOKEN" ]; then
+  echo "Deploying to Vercel..."
+  
+  # Deploy to Vercel
+  if [ -n "$PREVIEW_NAME" ]; then
+    DEPLOY_URL=$(vercel --prebuilt --yes --token "$VERCEL_TOKEN")
+  else
+    DEPLOY_URL=$(vercel --prebuilt --yes --token "$VERCEL_TOKEN")
+  fi
+  
+  echo "Preview deployed: $DEPLOY_URL"
+  echo "$DEPLOY_URL"
+else
+  echo "Warning: VERCEL_TOKEN not set, skipping deployment"
+  echo "Please set VERCEL_TOKEN to enable preview deployments"
+  echo "http://localhost:3000"
+fi

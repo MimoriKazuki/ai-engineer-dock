@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -e
+
+PROJECT_NAME="$1"
+TEMPLATE="$2"
+WORKSPACE_DIR=${WORKSPACE_DIR:-/workspace}
+
+if [ -z "$PROJECT_NAME" ]; then
+  echo "Usage: scaffold-project <project-name> [template]"
+  exit 1
+fi
+
+cd "$WORKSPACE_DIR"
+
+echo "Scaffolding project: $PROJECT_NAME"
+
+case "$TEMPLATE" in
+  "nextjs"|"")
+    npx create-next-app@14 "$PROJECT_NAME" \
+      --typescript \
+      --tailwind \
+      --app \
+      --src-dir \
+      --import-alias "@/*" \
+      --no-git
+    ;;
+  "react")
+    npx create-react-app "$PROJECT_NAME" --template typescript
+    ;;
+  *)
+    echo "Unknown template: $TEMPLATE"
+    exit 1
+    ;;
+esac
+
+cd "$PROJECT_NAME"
+
+# Initialize git repository
+git init
+git add .
+git commit -m "Initial commit - scaffolded with AI Engineer Dock
+
+🤖 Generated with AI Engineer Dock
+"
+
+echo "Project scaffolded successfully: $PROJECT_NAME"
