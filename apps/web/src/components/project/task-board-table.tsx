@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Clock, Zap, Brain, Code, User, GripVertical, Pause, UserPlus, Bot, Sparkles } from 'lucide-react';
+import { Plus, Zap, Brain, Code, GripVertical, Pause, Bot, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -89,7 +89,6 @@ export function TaskBoardTable({ tasks, onAddTask, onAssignTask, onTaskStatusCha
   // プロジェクトに所属するエンジニアのみフィルター
   const projectEngineers = engineers.filter(e => e.assigned_project_id === projectId);
   const idleEngineers = projectEngineers.filter(e => e.status === 'idle');
-  const busyEngineers = projectEngineers.filter(e => e.status === 'building' || e.status === 'planning');
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -296,13 +295,6 @@ export function TaskBoardTable({ tasks, onAddTask, onAssignTask, onTaskStatusCha
           </div>
         </td>
 
-        {/* Estimated Time */}
-        <td className="py-4 px-4">
-          <div className="flex items-center gap-1 text-xs text-gray-600">
-            <Clock className="w-3 h-3" />
-            <span>{task.estimatedMinutes}m</span>
-          </div>
-        </td>
 
         {/* Assigned Engineer */}
         <td className="py-4 px-4">
@@ -542,7 +534,6 @@ export function TaskBoardTable({ tasks, onAddTask, onAssignTask, onTaskStatusCha
                               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider w-8"></th>
                               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider">タスク</th>
                               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider w-20">優先度</th>
-                              <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider w-24">時間</th>
                               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider w-28">担当者</th>
                               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">進捗</th>
                               <th className="text-right py-3 px-4 text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">アクション</th>

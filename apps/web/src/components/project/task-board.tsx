@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Clock, Zap, Brain, Code, User, MoreVertical, GripVertical, Pause, Play, Square, UserPlus, Bot, Sparkles } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Plus, Clock, Zap, Brain, Code, User, GripVertical, Pause, Bot, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -27,10 +26,6 @@ import {
 import {
   CSS,
 } from '@dnd-kit/utilities';
-import {
-  restrictToVerticalAxis,
-  restrictToWindowEdges,
-} from '@dnd-kit/modifiers';
 
 interface Task {
   id: string;
@@ -349,23 +344,6 @@ export function TaskBoard({ tasks, onAddTask, onAssignTask, onTaskStatusChange, 
         {/* Actions */}
         <td className="py-4 px-4">
           <div className="flex items-center justify-end gap-1">
-            {!assignedEngineer && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 px-2 text-xs"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const availableEngineer = engineers.find(e => e.status === 'idle');
-                  if (availableEngineer) {
-                    onAssignTask(task.id, availableEngineer.id);
-                  }
-                }}
-              >
-                <UserPlus className="w-3 h-3 mr-1" />
-                割り当て
-              </Button>
-            )}
             <div className="text-xs text-gray-400 font-mono">
               #{task.id.slice(-4)}
             </div>

@@ -14,7 +14,6 @@ import {
   Code,
   Brain,
   Zap,
-  Plus,
   Edit,
   Trash2,
   CheckCircle2,
@@ -23,7 +22,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { TaskProgress } from '@/components/engineer/task-progress';
 import { TaskModal } from '@/components/project/task-modal';
 
 interface Task {
@@ -95,7 +93,6 @@ export function TasksPage({
   onEditTask,
   onDeleteTask
 }: TasksPageProps) {
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterProject, setFilterProject] = useState<string>('all');
@@ -156,11 +153,6 @@ export function TasksPage({
   };
 
   // Modal handlers
-  const handleAddTask = (projectId?: string) => {
-    setSelectedProjectId(projectId || null);
-    setEditingTask(null);
-    setIsTaskModalOpen(true);
-  };
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);

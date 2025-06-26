@@ -215,6 +215,44 @@ export default function Home() {
   const [projects, setProjects] = useState(mockProjects);
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
 
+  // Function to automatically update project status based on tasks
+  const updateProjectStatus = (projectId: string) => {
+    const projectTasks = tasks.filter(task => task.projectId === projectId);
+    
+    if (projectTasks.length === 0) {
+      // No tasks means project is in created state
+      setProjects(prev => prev.map(project =>
+        project.id === projectId ? { ...project, status: 'created' as const } : project
+      ));
+      return;
+    }
+
+    // Check if all tasks are done
+    const allTasksDone = projectTasks.every(task => task.status === 'done');
+    
+    // Check if at least one task is in progress
+    const hasTaskInProgress = projectTasks.some(task => 
+      task.status === 'in_progress' || task.status === 'review' || task.status === 'completed'
+    );
+    
+    // Check if all tasks are todo
+    const allTasksTodo = projectTasks.every(task => task.status === 'todo');
+
+    let newStatus: 'created' | 'building' | 'ready' | 'error' = 'created';
+    
+    if (allTasksDone) {
+      newStatus = 'ready';
+    } else if (hasTaskInProgress) {
+      newStatus = 'building';
+    } else if (allTasksTodo) {
+      newStatus = 'created';
+    }
+
+    setProjects(prev => prev.map(project =>
+      project.id === projectId ? { ...project, status: newStatus } : project
+    ));
+  };
+
   // Update all project statuses on mount and when tasks change
   useEffect(() => {
     // Update status for all projects
@@ -222,6 +260,7 @@ export default function Home() {
     uniqueProjectIds.forEach(projectId => {
       updateProjectStatus(projectId);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks]);
 
   // Simulate real-time task progress updates
@@ -286,6 +325,7 @@ export default function Home() {
     }, 4000); // Update every 4 seconds
 
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePageChange = (page: 'dashboard' | 'engineers' | 'tasks' | 'projects') => {
@@ -329,45 +369,6 @@ export default function Home() {
   const handleWizardCancel = () => {
     setCurrentView('projects');
   };
-
-  // Function to automatically update project status based on tasks
-  const updateProjectStatus = (projectId: string) => {
-    const projectTasks = tasks.filter(task => task.projectId === projectId);
-    
-    if (projectTasks.length === 0) {
-      // No tasks means project is in created state
-      setProjects(prev => prev.map(project =>
-        project.id === projectId ? { ...project, status: 'created' as const } : project
-      ));
-      return;
-    }
-
-    // Check if all tasks are done
-    const allTasksDone = projectTasks.every(task => task.status === 'done');
-    
-    // Check if at least one task is in progress
-    const hasTaskInProgress = projectTasks.some(task => 
-      task.status === 'in_progress' || task.status === 'review' || task.status === 'completed'
-    );
-    
-    // Check if all tasks are todo
-    const allTasksTodo = projectTasks.every(task => task.status === 'todo');
-
-    let newStatus: 'created' | 'building' | 'ready' | 'error' = 'created';
-    
-    if (allTasksDone) {
-      newStatus = 'ready';
-    } else if (hasTaskInProgress) {
-      newStatus = 'building';
-    } else if (allTasksTodo) {
-      newStatus = 'created';
-    }
-
-    setProjects(prev => prev.map(project =>
-      project.id === projectId ? { ...project, status: newStatus } : project
-    ));
-  };
-
 
   const handleViewProjectDetails = (project: ProjectData) => {
     setSelectedProject(project);
@@ -433,43 +434,6 @@ export default function Home() {
     });
   };
 
-  // 自動タスク割り当てロジック
-  const autoAssignNextTask = (engineerId: string, projectId?: string) => {
-    const engineer = engineers.find(e => e.id === engineerId);
-    if (!engineer || engineer.status !== 'idle') return;
-
-    const targetProjectId = projectId || engineer.assigned_project_id;
-    if (!targetProjectId) return;
-    
-    // まずエンジニアに既に割り当てられている待機中タスクを確認
-    const assignedPendingTask = tasks.find(t => 
-      t.projectId === targetProjectId && 
-      t.status === 'todo' && 
-      t.assignedTo === engineerId
-    );
-    
-    if (assignedPendingTask) {
-      handleStartTask(engineerId, assignedPendingTask.id);
-      return;
-    }
-
-    // 同じプロジェクトの未割り当てタスクを優先度順で取得
-    const availableTasks = tasks
-      .filter(t => 
-        t.projectId === targetProjectId && 
-        t.status === 'todo' && 
-        !t.assignedTo
-      )
-      .sort((a, b) => {
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        return priorityOrder[b.priority] - priorityOrder[a.priority];
-      });
-
-    if (availableTasks.length > 0) {
-      const nextTask = availableTasks[0];
-      handleStartTask(engineerId, nextTask.id);
-    }
-  };
 
   const handleStartTask = (engineerId: string, taskId?: string) => {
     const engineer = engineers.find(e => e.id === engineerId);
@@ -601,7 +565,7 @@ export default function Home() {
       });
       // Update project status
       if (affectedProjectId) {
-        setTimeout(() => updateProjectStatus(affectedProjectId), 0);
+        setTimeout(() => updateProjectStatus(affectedProjectId!), 0);
       }
       return updatedTasks;
     });
@@ -708,7 +672,7 @@ export default function Home() {
         });
         // Update project status
         if (affectedProjectId) {
-          setTimeout(() => updateProjectStatus(affectedProjectId), 0);
+          setTimeout(() => updateProjectStatus(affectedProjectId!), 0);
         }
         return updatedTasks;
       });

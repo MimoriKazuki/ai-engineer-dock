@@ -124,7 +124,7 @@ export function DashboardPage({ engineers, projects, tasks }: DashboardPageProps
   ];
 
   // 最近のアクティビティを動的に生成
-  const recentActivity = [];
+  const recentActivity: Array<{ time: string; message: string; type: 'success' | 'info' | 'warning' }> = [];
   
   // 最近のタスクアクティビティ
   const recentTasks = tasks

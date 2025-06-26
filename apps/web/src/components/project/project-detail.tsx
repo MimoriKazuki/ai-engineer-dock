@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Github, User, Plus, Bot, Sparkles, Clock, CheckCircle, AlertCircle, Activity, Zap, Brain, Code, Play, FolderOpen } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github, User, Plus, Bot, Sparkles, CheckCircle, Zap, Brain, Code, Play, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TaskModal } from './task-modal';
 import { Badge } from '@/components/ui/badge';
@@ -122,22 +122,6 @@ export function ProjectDetail({ project, engineers, onBack }: ProjectDetailProps
     }));
   };
 
-  const handleTaskStatusChange = (taskId: string, newStatus: Task['status']) => {
-    setTasks(prev => prev.map(task => {
-      if (task.id === taskId) {
-        // 未割り当てのタスクは完了にできない
-        if (!task.assignedTo && newStatus === 'done') {
-          return task;
-        }
-        // 完了時にエンジニア情報を保存
-        if (newStatus === 'done' && task.assignedTo) {
-          return { ...task, status: newStatus, completedBy: task.assignedTo };
-        }
-        return { ...task, status: newStatus };
-      }
-      return task;
-    }));
-  };
 
   const handleAutoMode = () => {
     setAutoMode(!autoMode);
@@ -179,8 +163,6 @@ export function ProjectDetail({ project, engineers, onBack }: ProjectDetailProps
 
   // プロジェクトに所属しているエンジニアを取得
   const projectEngineers = engineers.filter(e => e.assigned_project_id === project.id);
-  const activeEngineers = projectEngineers.filter(e => e.status === 'building' || e.status === 'planning');
-  const idleEngineers = projectEngineers.filter(e => e.status === 'idle');
   
   // タスクに実際にアサインされているエンジニアを反映
   const getActualEngineerTask = (engineer: Engineer) => {

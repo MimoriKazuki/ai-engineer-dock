@@ -28,7 +28,6 @@ interface DashboardProps {
   onHireEngineer: () => void;
   onCreateProject: () => void;
   onViewProject: (project: Project) => void;
-  onViewEngineerDetails: (engineer: Engineer) => void;
   onStartTask: (engineerId: string) => void;
 }
 
@@ -39,7 +38,6 @@ export function Dashboard({
   onHireEngineer,
   onCreateProject,
   onViewProject,
-  onViewEngineerDetails,
   onStartTask,
 }: DashboardProps) {
   const activeSeats = engineers.filter(e => e.status !== 'idle').length;
