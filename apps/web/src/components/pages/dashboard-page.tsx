@@ -7,7 +7,12 @@ import {
   Clock, 
   Users,
   Target,
-  Zap
+  Zap,
+  CheckCircle,
+  Play,
+  AlertCircle,
+  Rocket,
+  FolderOpen
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -124,7 +129,15 @@ export function DashboardPage({ engineers, projects, tasks }: DashboardPageProps
   ];
 
   // 最近のアクティビティを動的に生成
-  const recentActivity: Array<{ time: string; message: string; type: 'success' | 'info' | 'warning' }> = [];
+  const recentActivity: Array<{ 
+    time: string; 
+    title: string;
+    description: string;
+    type: 'success' | 'info' | 'warning';
+    icon: typeof CheckCircle;
+    iconColor: string;
+    bgColor: string;
+  }> = [];
   
   // 最近のタスクアクティビティ
   const recentTasks = tasks
@@ -142,15 +155,23 @@ export function DashboardPage({ engineers, projects, tasks }: DashboardPageProps
       const timeDiff = Math.round((Date.now() - new Date(task.completedAt).getTime()) / (1000 * 60));
       recentActivity.push({
         time: `${timeDiff}分前`,
-        message: `${engineer?.name || 'エンジニア'} が「${task.title}」を完了`,
-        type: 'success' as const
+        title: 'タスク完了',
+        description: `${engineer?.name || 'エンジニア'} が「${task.title}」を完了しました`,
+        type: 'success' as const,
+        icon: CheckCircle,
+        iconColor: 'text-green-600',
+        bgColor: 'bg-green-50'
       });
     } else if (task.status === 'in_progress' && task.startedAt) {
       const timeDiff = Math.round((Date.now() - new Date(task.startedAt).getTime()) / (1000 * 60));
       recentActivity.push({
         time: `${timeDiff}分前`,
-        message: `${engineer?.name || 'エンジニア'} が「${task.title}」を開始`,
-        type: 'info' as const
+        title: 'タスク開始',
+        description: `${engineer?.name || 'エンジニア'} が「${task.title}」の作業を開始しました`,
+        type: 'info' as const,
+        icon: Play,
+        iconColor: 'text-blue-600',
+        bgColor: 'bg-blue-50'
       });
     }
   });
@@ -160,20 +181,63 @@ export function DashboardPage({ engineers, projects, tasks }: DashboardPageProps
     if (engineer.status === 'idle' && engineer.last_message) {
       recentActivity.push({
         time: '数分前',
-        message: `${engineer.name} がアイドル状態に`,
-        type: 'warning' as const
+        title: 'エンジニア待機',
+        description: `${engineer.name} が作業を完了し、待機状態になりました`,
+        type: 'warning' as const,
+        icon: AlertCircle,
+        iconColor: 'text-orange-600',
+        bgColor: 'bg-orange-50'
       });
     }
   });
   
-  // 最新5件のみ表示
+  // プロジェクトの最近のアクティビティ
+  const recentProjects = projects
+    .filter(p => p.status === 'ready' || p.status === 'building')
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 2);
+    
+  recentProjects.forEach(project => {
+    const timeDiff = Math.round((Date.now() - new Date(project.created_at).getTime()) / (1000 * 60 * 60)); // 時間単位
+    if (project.status === 'ready') {
+      recentActivity.push({
+        time: timeDiff < 24 ? `${timeDiff}時間前` : `${Math.round(timeDiff / 24)}日前`,
+        title: 'プロジェクト完成',
+        description: `「${project.title}」が正常に完成しました`,
+        type: 'success' as const,
+        icon: Rocket,
+        iconColor: 'text-purple-600',
+        bgColor: 'bg-purple-50'
+      });
+    } else if (project.status === 'building') {
+      recentActivity.push({
+        time: timeDiff < 24 ? `${timeDiff}時間前` : `${Math.round(timeDiff / 24)}日前`,
+        title: 'プロジェクト構築中',
+        description: `「${project.title}」を構築中です`,
+        type: 'info' as const,
+        icon: FolderOpen,
+        iconColor: 'text-indigo-600',
+        bgColor: 'bg-indigo-50'
+      });
+    }
+  });
+  
+  // 最新6件のみ表示（時間順にソート）
   recentActivity.sort((a, b) => {
-    const getMinutes = (time: string) => {
-      const match = time.match(/(\d+)分前/);
-      return match ? parseInt(match[1]) : 999;
+    const getTime = (time: string) => {
+      const minuteMatch = time.match(/(\d+)分前/);
+      if (minuteMatch) return parseInt(minuteMatch[1]);
+      
+      const hourMatch = time.match(/(\d+)時間前/);
+      if (hourMatch) return parseInt(hourMatch[1]) * 60;
+      
+      const dayMatch = time.match(/(\d+)日前/);
+      if (dayMatch) return parseInt(dayMatch[1]) * 24 * 60;
+      
+      return 999;
     };
-    return getMinutes(a.time) - getMinutes(b.time);
-  }).slice(0, 5);
+    return getTime(a.time) - getTime(b.time);
+  }).slice(0, 6);
 
   return (
     <div className="space-y-8">
@@ -275,35 +339,65 @@ export function DashboardPage({ engineers, projects, tasks }: DashboardPageProps
         </Card>
 
         {/* Recent Activity */}
-        <Card className="border-0 bg-white/60 backdrop-blur-sm">
-          <CardHeader>
+        <Card className="border-0 bg-white/60 backdrop-blur-sm overflow-hidden">
+          <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-primary-600" />
               最近のアクティビティ
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.type === 'success' ? 'bg-green-500' :
-                    activity.type === 'warning' ? 'bg-orange-500' :
-                    'bg-blue-500'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+          <CardContent className="p-0">
+            <div className="divide-y divide-gray-100">
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity, index) => {
+                  const Icon = activity.icon;
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group hover:bg-gray-50 transition-all duration-200"
+                    >
+                      <div className="flex items-start gap-4 p-4">
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full ${activity.bgColor} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                          <Icon className={`w-5 h-5 ${activity.iconColor}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <h4 className="text-sm font-semibold text-gray-900">
+                                {activity.title}
+                              </h4>
+                              <p className="text-sm text-gray-600 mt-0.5">
+                                {activity.description}
+                              </p>
+                            </div>
+                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                              {activity.time}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              ) : (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Activity className="w-8 h-8 text-gray-400" />
                   </div>
-                </motion.div>
-              ))}
+                  <p className="text-sm text-gray-500">まだアクティビティがありません</p>
+                </div>
+              )}
             </div>
+            {recentActivity.length > 0 && (
+              <div className="p-3 bg-gray-50 border-t border-gray-100">
+                <button className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                  すべてのアクティビティを表示 →
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
