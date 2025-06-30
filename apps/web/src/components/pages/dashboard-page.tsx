@@ -403,49 +403,129 @@ export function DashboardPage({ engineers, projects, tasks }: DashboardPageProps
       </div>
       
       {/* Task Overview */}
-      <Card className="border-0 bg-white/60 backdrop-blur-sm">
-        <CardHeader>
+      <Card className="border-0 bg-white/60 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary-600" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <Target className="w-4 h-4 text-white" />
+            </div>
             タスク概要
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">{totalTasks}</p>
-              <p className="text-xs text-gray-600">総タスク数</p>
-            </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{inProgressTasks}</p>
-              <p className="text-xs text-gray-600">実行中</p>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{completedTasks}</p>
-              <p className="text-xs text-gray-600">完了</p>
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <p className="text-2xl font-bold text-orange-600">{totalTasks - completedTasks - inProgressTasks}</p>
-              <p className="text-xs text-gray-600">待機中</p>
-            </div>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="relative group"
+            >
+              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 transition-all duration-300 group-hover:shadow-md group-hover:scale-105">
+                <div className="flex flex-col items-center space-y-1">
+                  <p className="text-3xl font-bold text-gray-900">{totalTasks}</p>
+                  <p className="text-xs text-gray-500 font-medium">総タスク数</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="relative group"
+            >
+              <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 transition-all duration-300 group-hover:shadow-md group-hover:scale-105">
+                <div className="flex flex-col items-center space-y-1">
+                  <p className="text-3xl font-bold text-blue-600">{inProgressTasks}</p>
+                  <p className="text-xs text-gray-600 font-medium">実行中</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="relative group"
+            >
+              <div className="p-4 bg-green-50 rounded-2xl border border-green-100 transition-all duration-300 group-hover:shadow-md group-hover:scale-105">
+                <div className="flex flex-col items-center space-y-1">
+                  <p className="text-3xl font-bold text-green-600">{completedTasks}</p>
+                  <p className="text-xs text-gray-600 font-medium">完了</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="relative group"
+            >
+              <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 transition-all duration-300 group-hover:shadow-md group-hover:scale-105">
+                <div className="flex flex-col items-center space-y-1">
+                  <p className="text-3xl font-bold text-orange-600">{totalTasks - completedTasks - inProgressTasks}</p>
+                  <p className="text-xs text-gray-600 font-medium">待機中</p>
+                </div>
+              </div>
+            </motion.div>
           </div>
           
-          <div className="mt-6">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="font-medium text-gray-700">タスク完了率</span>
-              <span className="font-bold text-blue-600">
-                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
-              </span>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-600">タスク完了率</span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-blue-600">
+                  {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
+                </span>
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="relative">
+              <div className="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+                <motion.div
+                  className="relative h-full rounded-full overflow-hidden"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` }}
+                  transition={{ duration: 1.5, ease: 'easeOut' }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20" />
+                </motion.div>
+              </div>
+              {/* プログレスバーのハイライト効果 */}
               <motion.div
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` }}
-                transition={{ duration: 1, ease: 'easeOut' }}
+                className="absolute top-0 left-0 h-full w-32 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                animate={{
+                  x: ['-128px', totalTasks > 0 ? `${(completedTasks / totalTasks) * 100}%` : '0%'],
+                }}
+                transition={{
+                  duration: 2,
+                  ease: 'easeInOut',
+                  repeat: Infinity,
+                  repeatDelay: 3,
+                }}
               />
             </div>
-          </div>
+            
+            {/* 追加情報 */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span>実行中 {Math.round((inProgressTasks / totalTasks) * 100) || 0}%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span>完了 {Math.round((completedTasks / totalTasks) * 100) || 0}%</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </CardContent>
       </Card>
 
